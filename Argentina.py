@@ -9,7 +9,6 @@ import calendar
 import time
 from ast import literal_eval
 from gspread_pandas import Spread, conf
-import a as a
 
 print('Arranca Argentina')
 
