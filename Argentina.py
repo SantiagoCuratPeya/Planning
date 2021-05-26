@@ -232,6 +232,23 @@ def contar_campaigns(i):
             val = 0
     return val
 
+def low_orders(i):
+    if i['Fecha_Cierre'] != '-':
+        cierre = datetime.datetime.strptime(i['Fecha_Cierre'],'%Y-%m-%d').date()
+        if cierre > limite:
+            val = 0
+        else:
+            if i['Online'] == 'Si' and 0 <= i['Confirmed TM'] <= min_orders:
+                val = 1
+            else:
+                val = 0
+    else:
+        if i['Online'] == 'Si' and 0 <= i['Confirmed TM'] <= min_orders:
+                val = 1
+        else:
+            val = 0
+    return val
+
 #### FUNCIONES CRUDOS AM
 
 # Valoraciones RR
@@ -623,7 +640,7 @@ objetivos_am = final.copy()
 # Trabajo los Objetivos
 objetivos_am['Online Today'] = objetivos_am['Online'].apply(lambda x: 1 if x == 'Si' else 0)
 objetivos_am['Online Month'] = objetivos_am['Dias_Online TM'].apply(lambda x: 1 if x > 0 else 0)
-objetivos_am['Low Orders'] = objetivos_am.apply(lambda x: 1 if x['Online'] == 'Si' and 0 <= x['Confirmed TM'] <= min_orders else 0,axis=1)
+objetivos_am['Low Orders'] = objetivos_am.apply(low_orders,axis=1)
 # Hago Merge con el Roster
 objetivos_am = objetivos_am.merge(roster,on=['Account_Owner'],how='left')
 # Marco los faltantes como "No Restaurant"
@@ -1717,6 +1734,52 @@ cities = cities[cols].copy()
 log = carga('1aiwWbTP2l_2aVNop5vGCdea9SYvlRCX50vzKQ9yicQI','Crudo',cities,'Cities 2.0',log)
 
 print('Corrio Cities 2.0 -',datetime.date.today())
+
+####################################################################################################################################################
+#
+# RCP
+#
+####################################################################################################################################################
+
+# Filtro las columnas de stats
+cols = ['Confirmed LM','Confirmed TM','VFR_Num LM','VFR_Num TM','Total TM','Total LM','Dias_Online LM','Dias_Online TM',
+        'Sessions LM','Sessions TM','Closed_Time LM','Closed_Time TM','Scheduled_Time LM','Scheduled_Time TM']
+stats_rcp = stats[['Id']+cols+['Fecha_Cierre']].copy()
+# Doy formato a las columnas
+stats_rcp[cols] = stats_rcp[cols].astype(float)
+
+# Doy formato a las columnas para unir las tablas
+partners['Id'] = partners['Id'].astype(int)
+stats_rcp['Id'] = stats_rcp['Id'].astype(int)
+# Uno las tablas
+final_rcp = partners.merge(stats_rcp,on=['Id'],how='left')
+
+# Filtro las cuentas de RCP
+final_rcp = final_rcp[final_rcp['Account_Owner'].isin(rcp)].copy()
+
+# Creo las columnas faltantes
+final_rcp['%Closed_Time LM'] = final_rcp['Closed_Time LM'] / final_rcp['Scheduled_Time LM']
+final_rcp['%Closed_Time TM'] = final_rcp['Closed_Time TM'] / final_rcp['Scheduled_Time TM']
+final_rcp.replace([np.nan,np.inf,-np.inf],'-',inplace=True)
+
+# Cambio el formato a las columnas
+cols_int = ['Dias_Online TM','Dias_Online LM','Confirmed TM','Confirmed LM','VFR_Num TM','VFR_Num LM','Sessions TM','Sessions LM',
+            'Total TM','Total LM']
+cols_float = ['Closed_Time TM','Closed_Time LM','Scheduled_Time TM','Scheduled_Time LM']
+final_rcp[cols_int] = final_rcp[cols_int].astype(int)
+# Cambio el formato a los numeros float
+final_rcp['Closed_Time TM'] = [str(x).replace('.', ',') for x in final_rcp['Closed_Time TM']]
+final_rcp['Closed_Time LM'] = [str(x).replace('.', ',') for x in final_rcp['Closed_Time LM']]
+final_rcp['Scheduled_Time TM'] = [str(x).replace('.', ',') for x in final_rcp['Scheduled_Time TM']]
+final_rcp['Scheduled_Time LM'] = [str(x).replace('.', ',') for x in final_rcp['Scheduled_Time LM']]
+final_rcp['%Closed_Time TM'] = [str(x).replace('.', ',') for x in final_rcp['%Closed_Time TM']]
+final_rcp['%Closed_Time LM'] = [str(x).replace('.', ',') for x in final_rcp['%Closed_Time LM']]
+
+### CARGA
+
+log = carga('1zsby3bUVMDV-nmO35vDksyldcYidzpYR5Ps_-HUajMA','Crudo',final_rcp,'RCP',log)
+
+print('Corrio RCP -',datetime.date.today())
 
 ####################################################################################################################################################
 #
