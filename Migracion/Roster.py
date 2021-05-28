@@ -55,7 +55,7 @@ def a_listas_resto(i):
     resto.append(dicc)
 
 # Credenciales
-cred = conf.get_config('C:\\Users\\santiago.curat\\Pandas\\PEYA', 'PedidosYa-8b8c4d19f61c.json')
+cred = conf.get_config('C:\\Users\\micaela.fuchs\\Anaconda', 'PedidosYa-6e661fd93faf.json')
 
 # Roster CABA
 sheet_id = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
