@@ -14,7 +14,7 @@ print('Arranca Argentina')
 
 ### CREDENCIALES
 
-cred = conf.get_config('C:\\Users\\santiago.curat\\Pandas\\PEYA', 'PedidosYa-8b8c4d19f61c.json')
+cred = conf.get_config('C:\\Users\\micaela.fuchs\\Anaconda', 'PedidosYa-6e661fd93faf.json')
 
 ### GOOGLE SHEETS
 
@@ -144,9 +144,9 @@ reporte_resto.apply(a_listas_resto,axis=1)
 #### TRABAJO LOS KAM
 
 # Franchises KAM
-franchises_kam = [x for x in reporte_kams[reporte_kams.columns[0]].to_list() if x is not '']
+franchises_kam = [x for x in reporte_kams[reporte_kams.columns[0]].to_list() if x !=  '']
 # KAMs
-kams = [x.upper() for x in reporte_kams[reporte_kams.columns[1]].to_list() if x is not '']
+kams = [x.upper() for x in reporte_kams[reporte_kams.columns[1]].to_list() if x !=  '']
 
 #### TRABAJO EL ROSTER
 
@@ -1730,7 +1730,7 @@ cities['Reino'] = cities.apply(reinos,axis=1)
 cities['Vertical'] = cities['Business'].apply(lambda x: x if x == 'Restaurant' else 'NV')
 
 # Doy formato necesario a las columnas
-cols = [i for i in cities.columns if i not in ['Month','City','Area','Business','Feudo','Reino','Vertical']]
+cols = [i for i in cities.columns if i not in ['Month','City','Area','Business','Feudo','Reino','Vertical','Feudo Asignado']]
 cities[cols] = cities[cols].astype(float)
 
 # Formo las columnas faltantes
