@@ -348,6 +348,38 @@ def carga(url, sheet, df, archivo, log):
 
 ####################################################################################################################################################
 #
+# QUERY FORECAST DIARIO
+#
+####################################################################################################################################################
+
+q_forecast='''SELECT address.area.city.name AS city_name,
+       o.registered_date AS date,
+       COUNT(*) AS total_orders
+FROM `peya-bi-tools-pro.il_core.fact_orders` AS o
+WHERE o.registered_date >= CURRENT_DATE() - 1 
+      AND o.order_status = 'CONFIRMED'
+      AND o.country_id = 3
+GROUP BY 1,2
+ORDER BY 1,2'''
+
+# Descargo la data
+hue_forecast = pd.io.gbq.read_gbq(q_forecast, project_id='peya-argentina', dialect='standard')
+
+# Copio la base
+forecast = hue_forecast.copy()
+
+# Cambio el formato de la fecha
+forecast['date'] = forecast['date'].astype(str)
+forecast['date'] = forecast['date'].replace('-','/',regex=True)
+
+### CARGA
+
+log = carga('1DXoXs0uiz3J_EZxp4WJNEJ_bwEptZKdrTJEOtGqV8Dc','query_actuals',forecast,'Forecast Diario',log)
+
+print('Forecast Diario', datetime.date.today())
+
+####################################################################################################################################################
+#
 # PARTNERS PEYA
 #
 ####################################################################################################################################################
@@ -420,7 +452,7 @@ partners['KAM'] = partners.apply(lambda x: 'Si' if x['Franchise'] in franchises_
 # Ordeno las columnas
 cols = ['Grid','Id','Name','Franchise','City','Area','Feudo','Reino','KAM','Concept','Online','Accepts_Vouchers','Has_PO',
         'Logistic','Business','Main_Cuisine','Commission','First_Date_Online','New_Online','Account_Owner','SF_Status',
-        'BO_Status','Churn','Zombie','Confirmed_Orders_TM','Online_TM','Qty_Products','Qty_Photos']
+        'BO_Status','Churn','Zombie','Confirmed_Orders_TM','Online_TM','Qty_Products','Qty_Photos','Feudo Asignado']
 partners = partners[cols]
 
 # Ordeno segun Id

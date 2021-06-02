@@ -1,9 +1,7 @@
 # Imports
 from google_drive_downloader import GoogleDriveDownloader as gdd
 import pandas as pd
-from df2gspread import df2gspread as d2g
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
+from gspread_pandas import Spread, conf
 from ast import literal_eval
 
 # Funciones
@@ -55,40 +53,37 @@ def a_listas_resto(i):
         else:
             dicc[j] = i[j]
     resto.append(dicc)
-
+    
 def asignado(i):
     if i['City'] in cities_asignadas:
         val = 'Si'
     else:
         val = 'No'
     return val
-    
+
 # Credenciales
-scope = ['https://spreadsheets.google.com/feeds'] 
-credentials = ServiceAccountCredentials.from_json_keyfile_name('PedidosYa-6e661fd93faf.json', scope) 
-gc = gspread.authorize(credentials)
+cred = conf.get_config('C:\\Users\\micaela.fuchs\\Anaconda', 'PedidosYa-6e661fd93faf.json')
 
 # Roster CABA
-reporte_caba = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
-reporte = gc.open_by_key(reporte_caba)
-worksheet_reporte = reporte.worksheet('Roster CABA')
-table_reporte = worksheet_reporte.get_all_values()
-headers_reporte = table_reporte.pop(0)
-reporte_caba = pd.DataFrame(table_reporte, columns=headers_reporte)
+sheet_id = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
+wks_name = 'Roster CABA'
+sheet = Spread(sheet_id, wks_name, config=cred)
+reporte_caba = sheet.sheet_to_df(index=0,header_rows=1)
 
 # Roster Resto
-reporte_resto = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
-reporte = gc.open_by_key(reporte_resto)
-worksheet_reporte = reporte.worksheet('Roster Resto')
-table_reporte = worksheet_reporte.get_all_values()
-headers_reporte = table_reporte.pop(0)
-reporte_resto = pd.DataFrame(table_reporte, columns=headers_reporte)
+sheet_id = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
+wks_name = 'Roster Resto'
+sheet = Spread(sheet_id, wks_name, config=cred)
+reporte_resto = sheet.sheet_to_df(index=0,header_rows=1)
 
 # Roster Ciudades Asigandas
 sheet_id = '1JNywQTVzEQKRwqrJRkpzjiXx5Ly-FldtBMfeSYHuL7w'
 wks_name = 'Ciudades Asignadas'
 sheet = Spread(sheet_id, wks_name, config=cred)
 cities_asignadas = sheet.sheet_to_df(index=0,header_rows=1)
+
+# Creo lista de Cities Asignadas
+cities_asignadas = cities_asignadas[cities_asignadas.columns[0]].to_list()
 
 # Creo las columnas
 cols_caba = reporte_caba.columns
@@ -99,6 +94,3 @@ caba = []
 resto = []
 reporte_caba.apply(a_listas_caba,axis=1)
 reporte_resto.apply(a_listas_resto,axis=1)
-
-# Creo lista de Cities Asignadas
-cities_asignadas = cities_asignadas[cities_asignadas.columns[0]].to_list()
